@@ -9,6 +9,25 @@
 #import "LayerQuery.h"
 
 @implementation LayerQuery
+-(NSOrderedSet*)fetchAnnouncementsForClient:(id)client limit:(int)limit offset:(int)offset error:(NSError *)err
+{
+    LYRQuery *query = [LYRQuery queryWithQueryableClass:[LYRAnnouncement class]];
+    if (limit>0)
+        query.limit = limit;
+    query.offset=offset;
+    
+    NSError *error = nil;
+    NSOrderedSet *announcements = [client executeQuery:query error:&error];
+    if(announcements) {
+        NSLog(@"%tu announcements", announcements.count);
+        return announcements;
+    } else {
+        NSLog(@"Query failed with error %@", error);
+        err = error;
+        return nil;
+    }
+}
+
 -(NSOrderedSet*)fetchConvosForClient:(LYRClient*)client limit:(int)limit offset:(int)offset error:(NSError*)err
 {
   // Fetches all LYRConversation objects

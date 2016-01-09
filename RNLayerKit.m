@@ -114,6 +114,21 @@ RCT_EXPORT_METHOD(getConversations:(int)limit offset:(int)offset callback:(RCTRe
     }
 }
 
+RCT_EXPORT_METHOD(getAnnouncements: limit:(int)limit offset:(int)offset callback:(RCTResponseSenderBlock)callback)
+{
+    LayerQuery *query = [LayerQuery new];
+    NSError *queryError;
+    NSOrderedSet *announcements = [query fetchAnnouncementsForClient:_layerClient limit:limit offset:offset error:queryError];
+    if (queryError) {
+        id retErr = RCTMakeAndLogError(@"Error getting Layer announcements", queryError, NULL);
+        callback(@[retErr, [NSNull null]]);
+    } else {
+        JSONHelper *helper = [JSoNHelper new];
+        NSArray *retData = [helper convertAnnouncementsToArray:announcements];
+        callbac(@[[NSNull null], retData]);
+    }
+}
+
 RCT_EXPORT_METHOD(getMessages:(NSString*)convoID limit:(int)limit offset:(int)offset callback:(RCTResponseSenderBlock)callback)
 {
     LayerQuery *query = [LayerQuery new];

@@ -51,6 +51,15 @@
   return allArr;
 }
 
+-(NSArray*)convertAnnouncementsToArray:(NSOrderedSet *)allAnnouncements
+{
+    NSMutableArray *allArr = [NSMutableArray new];
+    for (LYRAnnouncement *ann in allAnnouncements) {
+        [allArr addObject:[self convertAnnouncementToDict:ann]];
+    }
+    return allArr;
+}
+
 -(NSDictionary*)convertErrorToDictionary:(NSError *)error
 {
   return @{@"code":@(error.code),@"domain":error.domain,@"description":[error localizedDescription]};
@@ -123,6 +132,35 @@
 
   
   return [NSDictionary dictionaryWithDictionary:propertyDict];
+}
+
+-(NSDictionary*)convertAnnouncementToDict:(LYRAnnouncement*)announcement
+{
+    NSMutableDictionary *propertyDict = [NSMutableDictionary new];
+    [propertyDict setValue:[NSMutableDictionary dictionaryWithDictionary:announcement.recipientStatusByUserID] forKey:@"recipientStatusByUserID"];
+    
+    [propertyDict setValue:@(announcement.isSent) forKey:@"isSent"];
+    [propertyDict setValue:@(announcement.isDeleted) forKey:@"isDeleted"];
+    [propertyDict setValue:@(announcement.isUnread) forKey:@"isUnread"];
+    [propertyDict setValue:announcement.sender.userID forKey:@"sender"];
+    [propertyDict setValue:[self convertDateToJSON:announcement.sentAt] forKey:@"sentAt"];
+    [propertyDict setValue:[self convertDateToJSON:announcement.receivedAt] forKey:@"recievedAt"];
+    [propertyDict setValue:[announcement.identifier absoluteString] forKey:@"identifier"];
+    
+    NSMutableString *messageText= [NSMutableString new];
+    NSMutableArray *messageParts = [NSMutableArray new];
+    for(LYRMessagePart *part in announcement.parts){
+        [messageParts addObject:[self convertMessagePartToDict:part]];
+        if([part.MIMEType isEqualToString:@"text/plain"]){
+            [messageText appendString:[[NSString alloc] initWithData:part.data encoding:NSUTF8StringEncoding]];
+        }
+    }
+    
+    [propertyDict setValue:messageParts forKey:@"parts"];
+    [propertyDict setValue:messageText forKey:@"text"];
+    
+    
+    return [NSDictionary dictionaryWithDictionary:propertyDict];
 }
 
 -(NSDictionary*)convertMessagePartToDict:(LYRMessagePart*)msgPart
